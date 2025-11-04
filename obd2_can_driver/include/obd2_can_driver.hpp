@@ -1,6 +1,8 @@
 
+#include <iostream>
 
 #include <string>
+#include <cstring>
 #include <vector>
 
 #include <unistd.h>
@@ -12,12 +14,12 @@
 
 #define N_ATTEMPTS 5
 
-typedef {
-    struct can_frame} can_frame_t;
+typedef struct can_frame can_frame_t;
 
 class Obd2CanDriver
 {
 public:
+
     Obd2CanDriver(std::string, std::string);
     ~Obd2CanDriver();
 
@@ -25,7 +27,7 @@ public:
 
     bool send_data();
 
-    bool obd2_request(uint8_t);
+    can_frame_t obd2_request(uint8_t);
 
 private:
     std::string can_in_;
@@ -41,7 +43,9 @@ private:
 
     std::vector<uint8_t> pids_;
 
+    bool is_new_data_;
+
     double longitudinal_speed_;
     double engine_rpm_;
     double throttle_position_;
-}
+};

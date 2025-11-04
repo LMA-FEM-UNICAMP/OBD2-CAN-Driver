@@ -12,20 +12,27 @@
 #include <linux/can.h>
 #include <linux/can/raw.h>
 
-#define N_ATTEMPTS 5
+/* OBD2 PIDs */
+
+#define GET_AVAILABLE_PIDS_PID 0x00
+#define ENGINE_SPEED_PID 0x0C
+#define VEHICLE_SPEED_PID 0x0D
+#define THROTTLE_PEDAL_POSITION_PID 0x11
+
+#define CANVSTATE_CANID 0x123
 
 typedef struct can_frame can_frame_t;
 
 class Obd2CanDriver
 {
 public:
-
     Obd2CanDriver(std::string, std::string);
     ~Obd2CanDriver();
 
     bool read_obd2();
 
-    bool send_data();
+    bool send_data_to_can_out();
+    bool send_data_to_can_out(can_frame_t);
 
     can_frame_t obd2_request(uint8_t);
 

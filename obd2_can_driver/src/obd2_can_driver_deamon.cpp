@@ -4,17 +4,27 @@
 #include <chrono>
 #include <thread>
 
-int main()
+int main(int argc, char *argv[])
 {
+
+    if (argc < 3)
+    {
+        std::cerr << "Usage: " << argv[0] << " <string1> <string2>\n";
+        return 1;
+    }
 
     std::cout << "Starting obd2_can_driver" << std::endl;
 
-    Obd2CanDriver obd2_can_driver("vcan0", "vcan1");
+    std::cout << "Using " << argv[1] << " as OBD2 CAN interface" << std::endl;
+    std::cout << "Using " << argv[2 ] << " as OBU CAN interface" << std::endl;
+
+    Obd2CanDriver obd2_can_driver(argv[1], argv[2]);
 
     while (1)
     {
         obd2_can_driver.read_obd2();
         obd2_can_driver.send_data_to_can_out();
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
+
+    return 0;
 }

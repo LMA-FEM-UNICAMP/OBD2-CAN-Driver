@@ -4,6 +4,7 @@
 #include <string>
 #include <cstring>
 #include <vector>
+#include <cstdio>
 
 #include <unistd.h>
 #include <net/if.h>
@@ -11,6 +12,7 @@
 #include <sys/socket.h>
 #include <linux/can.h>
 #include <linux/can/raw.h>
+#include <sys/un.h>
 
 /* OBD2 PIDs */
 
@@ -36,7 +38,7 @@ public:
 
     can_frame_t obd2_request(uint8_t);
 
-    void obd2_logging(std::string);
+    void obd2_logging(char *);
 
 private:
     std::string can_in_;
@@ -54,7 +56,7 @@ private:
 
     bool is_new_data_;
 
-    double longitudinal_speed_;
+    uint8_t longitudinal_speed_;
     double engine_rpm_;
     double throttle_position_;
 

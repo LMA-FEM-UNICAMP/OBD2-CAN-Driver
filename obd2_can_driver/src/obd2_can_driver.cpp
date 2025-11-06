@@ -3,7 +3,6 @@
 
 #include <chrono>
 #include <thread>
-// #include <format>
 
 Obd2CanDriver::Obd2CanDriver(std::string can_in, std::string can_out)
 {
@@ -78,9 +77,9 @@ Obd2CanDriver::~Obd2CanDriver()
     close(client_log_);
 }
 
-void Obd2CanDriver::obd2_logging(std::string msg)
+void Obd2CanDriver::obd2_logging(char *msg)
 {
-    write(client_log_, msg.c_str(), strlen(msg.c_str()));
+    write(client_log_, msg, strlen(msg));
 }
 
 can_frame_t Obd2CanDriver::obd2_request(uint8_t pid)
@@ -147,6 +146,8 @@ bool Obd2CanDriver::read_obd2()
     {
         can_frame_t response_frame;
 
+        char logging_buffer[128];
+
         response_frame = obd2_request(pid);
 
         if (response_frame.can_id == 0x00)
@@ -158,21 +159,30 @@ bool Obd2CanDriver::read_obd2()
         {
         case ENGINE_SPEED_PID: // Engine RPM
             engine_rpm_ = static_cast<double>(((response_frame.data[3] * 256.0) + response_frame.data[4]) / 4.0);
+
             std::cout << "Engine Speed [RPM]: " << engine_rpm_ << std::endl;
-            obd2_logging(std::format("Engine Speed [RPM]:  {:.2f}", engine_rpm_));
+
+            snprintf(logging_buffer, sizeof(logging_buffer), "Engine Speed [RPM]:  %.2f", engine_rpm_);
+            obd2_logging(logging_buffer);
             break;
 
         case VEHICLE_SPEED_PID: // Longitudinal Speed
             longitudinal_speed_ = static_cast<double>(response_frame.data[3]);
             is_new_data_ = true;
+
             std::cout << "Vehicle Speed [km/h]: " << longitudinal_speed_ << std::endl;
-            obd2_logging(std::format("Vehicle Speed [km/h]: {}", longitudinal_speed_));
+
+            snprintf(logging_buffer, sizeof(logging_buffer), "Vehicle Speed [km/h]: %d", longitudinal_speed_);
+            obd2_logging(logging_buffer);
             break;
 
         case THROTTLE_PEDAL_POSITION_PID: // Throttle Position
             throttle_position_ = static_cast<double>(response_frame.data[3] * 100.0 / 255.0);
+
             std::cout << "Throttle Position [%]: " << throttle_position_ << std::endl;
-            obd2_logging(std::format("Throttle Position [%]: {:.2f}", throttle_position_));
+
+            snprintf(logging_buffer, sizeof(logging_buffer), "Throttle Position [%%]: %.2f", throttle_position_);
+            obd2_logging(logging_buffer);
             break;
 
         default:

@@ -1,0 +1,11 @@
+# In the file /etc/systemd/system/obd2_can_driver_deamon.service
+[Unit]
+Description=OBD2 CAN Driver Deamon
+After=network.target
+
+[Service]
+ExecStart=/opt/OBD2-CAN-Driver/obd2_can_driver/obd2_can_driver_deamon
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

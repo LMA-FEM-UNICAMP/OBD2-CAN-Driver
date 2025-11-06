@@ -6,6 +6,8 @@
 #include <vector>
 #include <cstdio>
 
+#include <atomic>
+
 #include <unistd.h>
 #include <net/if.h>
 #include <sys/ioctl.h>
@@ -39,6 +41,7 @@ public:
     can_frame_t obd2_response();
     bool obd2_request(uint8_t);
     void obd2_requester();
+    void configure_requester(bool);
 
     void obd2_logging(char *);
 
@@ -57,9 +60,9 @@ private:
     std::vector<uint8_t> pids_;
 
     bool is_new_data_;
-    bool requesting_;
+    std::atomic<bool> requesting_;
 
-    uint8_t longitudinal_speed_;
+    int longitudinal_speed_;
     double engine_rpm_;
     double throttle_position_;
 

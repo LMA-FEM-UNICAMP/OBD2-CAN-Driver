@@ -22,3 +22,4 @@ CMakeUserPresets.json
 **.vscode
 
 obd2_can_driver/obd2_can_driver_deamon
+obd2_can_driver/obd2_can_driver_exe

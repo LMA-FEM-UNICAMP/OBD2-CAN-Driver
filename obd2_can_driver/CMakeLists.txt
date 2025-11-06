@@ -11,3 +11,9 @@ add_executable(
     src/obd2_can_driver.cpp
     src/obd2_can_driver_deamon.cpp
     )
+
+add_executable(
+    obd2_can_driver_exe 
+    src/obd2_can_driver.cpp
+    src/obd2_can_driver_exe.cpp
+    )

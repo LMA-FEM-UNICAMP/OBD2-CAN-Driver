@@ -56,17 +56,16 @@ Obd2CanDriver::Obd2CanDriver(std::string can_in, std::string can_out)
     pids_.push_back(THROTTLE_PEDAL_POSITION_PID);
 
     is_new_data_ = false;
-    requesting_ = true;
+    requesting_.store(true);
 
     /* Logging */
-    sockfd_log_ = socket(AF_UNIX, SOCK_STREAM, 0);
+    // TODO is not working
+    sockfd_log_ = socket(AF_UNIX, SOCK_DGRAM, 0);
     addr_log_ = {0};
     addr_log_.sun_family = AF_UNIX;
     strcpy(addr_log_.sun_path, "/tmp/obd2_can_logging.sock");
-    unlink("/tmp/obd2_logging.sock");
-    bind(sockfd_log_, (struct sockaddr *)&addr_log_, sizeof(addr_log_));
-    listen(sockfd_log_, 5);
-    client_log_ = accept(sockfd_log_, NULL, NULL);
+
+    obd2_logging("Starting obd2_can_driver...\n\n");
 }
 
 Obd2CanDriver::~Obd2CanDriver()
@@ -80,7 +79,7 @@ Obd2CanDriver::~Obd2CanDriver()
 
 void Obd2CanDriver::obd2_logging(char *msg)
 {
-    write(client_log_, msg, strlen(msg));
+    sendto(sockfd_log_, msg, strlen(msg), 0, (struct sockaddr *)&addr_log_, sizeof(addr_log_));
 }
 
 bool Obd2CanDriver::obd2_request(uint8_t pid)
@@ -105,7 +104,7 @@ bool Obd2CanDriver::obd2_request(uint8_t pid)
 
 void Obd2CanDriver::obd2_requester()
 {
-    while (requesting_)
+    while (requesting_.load())
     {
         for (uint8_t pid : pids_)
         {
@@ -113,6 +112,11 @@ void Obd2CanDriver::obd2_requester()
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
+}
+
+void Obd2CanDriver::configure_requester(bool state)
+{
+    requesting_.store(state);
 }
 
 can_frame_t Obd2CanDriver::obd2_response()
@@ -159,17 +163,17 @@ bool Obd2CanDriver::read_obd2()
 
         std::cout << "Engine Speed [RPM]: " << engine_rpm_ << std::endl;
 
-        snprintf(logging_buffer, sizeof(logging_buffer), "Engine Speed [RPM]:  %.2f", engine_rpm_);
+        snprintf(logging_buffer, sizeof(logging_buffer), "Engine Speed [RPM]:  %.2f\n", engine_rpm_);
         obd2_logging(logging_buffer);
         break;
 
     case VEHICLE_SPEED_PID: // Longitudinal Speed
-        longitudinal_speed_ = static_cast<double>(response_frame.data[3]);
+        longitudinal_speed_ = static_cast<int>(response_frame.data[3]);
         is_new_data_ = true;
 
         std::cout << "Vehicle Speed [km/h]: " << longitudinal_speed_ << std::endl;
 
-        snprintf(logging_buffer, sizeof(logging_buffer), "Vehicle Speed [km/h]: %d", longitudinal_speed_);
+        snprintf(logging_buffer, sizeof(logging_buffer), "Vehicle Speed [km/h]: %d\n", longitudinal_speed_);
         obd2_logging(logging_buffer);
         break;
 
@@ -178,7 +182,7 @@ bool Obd2CanDriver::read_obd2()
 
         std::cout << "Throttle Position [%]: " << throttle_position_ << std::endl;
 
-        snprintf(logging_buffer, sizeof(logging_buffer), "Throttle Position [%%]: %.2f", throttle_position_);
+        snprintf(logging_buffer, sizeof(logging_buffer), "Throttle Position [%%]: %.2f\n", throttle_position_);
         obd2_logging(logging_buffer);
         break;
 

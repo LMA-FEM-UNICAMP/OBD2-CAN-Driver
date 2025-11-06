@@ -61,7 +61,7 @@ Obd2CanDriver::Obd2CanDriver(std::string can_in, std::string can_out)
     sockfd_log_ = socket(AF_UNIX, SOCK_STREAM, 0);
     addr_log_ = {0};
     addr_log_.sun_family = AF_UNIX;
-    strcpy(addr_log_.sun_path, "/tmp/obd2_logging.sock");
+    strcpy(addr_log_.sun_path, "/tmp/obd2_can_logging.sock");
     unlink("/tmp/obd2_logging.sock");
     bind(sockfd_log_, (struct sockaddr *)&addr_log_, sizeof(addr_log_));
     listen(sockfd_log_, 5);

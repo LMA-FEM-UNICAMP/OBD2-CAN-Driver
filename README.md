@@ -1,5 +1,9 @@
 # OBD2 CAN Driver for Cohda MK6 OBU
 
+<p align="center">
+  <img width="60%" height="80%" src="docs/OBU_OBD2-diagram.png">
+</p>
+
 ## Clonning
 
 ```shell

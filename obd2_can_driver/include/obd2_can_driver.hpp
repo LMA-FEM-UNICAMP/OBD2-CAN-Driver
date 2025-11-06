@@ -24,6 +24,7 @@
 #define THROTTLE_PEDAL_POSITION_PID 0x11
 
 #define CANVSTATE_CANID 0x123
+#define REQUEST_DELAY 20
 
 typedef struct can_frame can_frame_t;
 

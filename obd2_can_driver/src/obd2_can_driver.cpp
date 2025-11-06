@@ -109,7 +109,7 @@ void Obd2CanDriver::obd2_requester()
         for (uint8_t pid : pids_)
         {
             bool request_success = obd2_request(pid);
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            std::this_thread::sleep_for(std::chrono::milliseconds(REQUEST_DELAY));
         }
     }
 }

@@ -36,6 +36,8 @@ public:
 
     can_frame_t obd2_request(uint8_t);
 
+    void obd2_logging(std::string);
+
 private:
     std::string can_in_;
     std::string can_out_;
@@ -55,4 +57,10 @@ private:
     double longitudinal_speed_;
     double engine_rpm_;
     double throttle_position_;
+
+    /* Logging */
+
+    int sockfd_log_;
+    struct sockaddr_un addr_log_;
+    int client_log_;
 };

@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <thread>
+// #include <format>
 
 Obd2CanDriver::Obd2CanDriver(std::string can_in, std::string can_out)
 {
@@ -56,6 +57,16 @@ Obd2CanDriver::Obd2CanDriver(std::string can_in, std::string can_out)
     pids_.push_back(THROTTLE_PEDAL_POSITION_PID);
 
     is_new_data_ = false;
+
+    /* Logging */
+    sockfd_log_ = socket(AF_UNIX, SOCK_STREAM, 0);
+    addr_log_ = {0};
+    addr_log_.sun_family = AF_UNIX;
+    strcpy(addr_log_.sun_path, "/tmp/obd2_logging.sock");
+    unlink("/tmp/obd2_logging.sock");
+    bind(sockfd_log_, (struct sockaddr *)&addr_log_, sizeof(addr_log_));
+    listen(sockfd_log_, 5);
+    client_log_ = accept(sockfd_log_, NULL, NULL);
 }
 
 Obd2CanDriver::~Obd2CanDriver()
@@ -64,6 +75,12 @@ Obd2CanDriver::~Obd2CanDriver()
 
     close(socket_in_);
     close(socket_out_);
+    close(client_log_);
+}
+
+void Obd2CanDriver::obd2_logging(std::string msg)
+{
+    write(client_log_, msg.c_str(), strlen(msg.c_str()));
 }
 
 can_frame_t Obd2CanDriver::obd2_request(uint8_t pid)
@@ -91,7 +108,7 @@ can_frame_t Obd2CanDriver::obd2_request(uint8_t pid)
     int sendbytes = write(socket_in_, &request_frame, sizeof(can_frame_t));
 
     /// Reading OBD2 response for the PID
-    
+
     int nbytes = read(socket_in_, &response_frame, sizeof(can_frame_t));
 
     // std::cout << "Response received" << std::endl;
@@ -142,17 +159,20 @@ bool Obd2CanDriver::read_obd2()
         case ENGINE_SPEED_PID: // Engine RPM
             engine_rpm_ = static_cast<double>(((response_frame.data[3] * 256.0) + response_frame.data[4]) / 4.0);
             std::cout << "Engine Speed [RPM]: " << engine_rpm_ << std::endl;
+            obd2_logging(std::format("Engine Speed [RPM]:  {:.2f}", engine_rpm_));
             break;
 
         case VEHICLE_SPEED_PID: // Longitudinal Speed
             longitudinal_speed_ = static_cast<double>(response_frame.data[3]);
             is_new_data_ = true;
             std::cout << "Vehicle Speed [km/h]: " << longitudinal_speed_ << std::endl;
+            obd2_logging(std::format("Vehicle Speed [km/h]: {}", longitudinal_speed_));
             break;
 
         case THROTTLE_PEDAL_POSITION_PID: // Throttle Position
             throttle_position_ = static_cast<double>(response_frame.data[3] * 100.0 / 255.0);
             std::cout << "Throttle Position [%]: " << throttle_position_ << std::endl;
+            obd2_logging(std::format("Throttle Position [%]: {:.2f}", throttle_position_));
             break;
 
         default:
@@ -185,7 +205,7 @@ bool Obd2CanDriver::send_data_to_can_out()
 
         memset(send_frame.data, 0, sizeof(send_frame.data)); // Setting frame data to 0
 
-        u_int16_t vehicle_speed_cm_per_s = static_cast<u_int16_t>(engine_rpm_/10.0 / 3.6 * 100.0);
+        u_int16_t vehicle_speed_cm_per_s = static_cast<u_int16_t>(engine_rpm_ / 10.0 / 3.6 * 100.0);
 
         u_int16_t longitudinal_acceleration_mm_per_s2 = 0;
 

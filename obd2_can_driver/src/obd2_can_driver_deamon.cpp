@@ -16,15 +16,22 @@ int main(int argc, char *argv[])
     std::cout << "Starting obd2_can_driver" << std::endl;
 
     std::cout << "Using " << argv[1] << " as OBD2 CAN interface" << std::endl;
-    std::cout << "Using " << argv[2 ] << " as OBU CAN interface" << std::endl;
+    std::cout << "Using " << argv[2] << " as OBU CAN interface" << std::endl;
 
     Obd2CanDriver obd2_can_driver(argv[1], argv[2]);
 
+    std::thread obd2_requester_trd(&Obd2CanDriver::obd2_requester, &obd2_can_driver);
+
     while (1)
     {
-        obd2_can_driver.read_obd2();
-        obd2_can_driver.send_data_to_can_out();
+        bool success = obd2_can_driver.read_obd2();
+        if (success)
+        {
+            obd2_can_driver.send_data_to_can_out();
+        }
     }
+
+    obd2_requester_trd.join();
 
     return 0;
 }

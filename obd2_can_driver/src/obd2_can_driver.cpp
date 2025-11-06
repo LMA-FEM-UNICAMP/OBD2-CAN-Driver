@@ -56,6 +56,7 @@ Obd2CanDriver::Obd2CanDriver(std::string can_in, std::string can_out)
     pids_.push_back(THROTTLE_PEDAL_POSITION_PID);
 
     is_new_data_ = false;
+    requesting_ = true;
 }
 
 Obd2CanDriver::~Obd2CanDriver()
@@ -66,13 +67,9 @@ Obd2CanDriver::~Obd2CanDriver()
     close(socket_out_);
 }
 
-can_frame_t Obd2CanDriver::obd2_request(uint8_t pid)
+bool Obd2CanDriver::obd2_request(uint8_t pid)
 {
-    //     std::cout << std::endl
-    //               << "Requesting pid " << static_cast<int>(pid) << std::endl;
-
     can_frame_t request_frame;
-    can_frame_t response_frame;
 
     /// Sending OBD2 request for the desired PID
 
@@ -85,40 +82,41 @@ can_frame_t Obd2CanDriver::obd2_request(uint8_t pid)
     request_frame.data[1] = 0x01; // Service 01 (Show current data)
     request_frame.data[2] = pid;  // PID
 
-    // std::cout << "Sending request" << std::endl
-    //           << std::endl;
-
     int sendbytes = write(socket_in_, &request_frame, sizeof(can_frame_t));
 
-    /// Reading OBD2 response for the PID
-    
+    return (sendbytes > 0) ? 1 : 0;
+}
+
+void Obd2CanDriver::obd2_requester()
+{
+    while (requesting_)
+    {
+        for (uint8_t pid : pids_)
+        {
+            bool request_success = obd2_request(pid);
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+}
+
+can_frame_t Obd2CanDriver::obd2_response()
+{
+    can_frame_t response_frame;
+
+    /// Reading OBD2 response
+
     int nbytes = read(socket_in_, &response_frame, sizeof(can_frame_t));
 
-    // std::cout << "Response received" << std::endl;
-
-    // std::cout << "PID received: " << static_cast<int>(response_frame.data[2]) << std::endl;
-
     /// Checking if the response was successful, the ID is valid and the PID is right
-    if (nbytes > 0 && (response_frame.can_id & 0xFFF) == 0x7E9) // && response_frame.data[2] == pid)
+    if (nbytes > 0 && (response_frame.can_id & 0xFF0) == 0x7E0) // && response_frame.data[2] == pid)
     {
-        std::cout << response_frame.can_id << " ";
-        for (int i = 0; i < 8; i++)
-        {
-            std::cout << std::hex << int(response_frame.data[i]) << " ";
-        }
-        std::cout << std::endl;
-
         return response_frame;
     }
-
-    // ? Try again?
 
     /// If some is wrong, skip this request and return a invalid message
     else
     {
         response_frame.can_id = 0x00;
-
-        // std::cout << "Wrong PID received, skipping..." << std::endl;
 
         return response_frame;
     }
@@ -126,38 +124,36 @@ can_frame_t Obd2CanDriver::obd2_request(uint8_t pid)
 
 bool Obd2CanDriver::read_obd2()
 {
-    for (uint8_t pid : pids_)
+
+    can_frame_t response_frame;
+
+    response_frame = obd2_response();
+
+    if (response_frame.can_id == 0x00)
     {
-        can_frame_t response_frame;
+        return 0;
+    }
 
-        response_frame = obd2_request(pid);
+    switch (response_frame.data[2])
+    {
+    case ENGINE_SPEED_PID: // Engine RPM
+        engine_rpm_ = static_cast<double>(((response_frame.data[3] * 256.0) + response_frame.data[4]) / 4.0);
+        std::cout << "Engine Speed [RPM]: " << engine_rpm_ << std::endl;
+        break;
 
-        if (response_frame.can_id == 0x00)
-        {
-            continue;
-        }
+    case VEHICLE_SPEED_PID: // Longitudinal Speed
+        longitudinal_speed_ = static_cast<double>(response_frame.data[3]);
+        is_new_data_ = true;
+        std::cout << "Vehicle Speed [km/h]: " << longitudinal_speed_ << std::endl;
+        break;
 
-        switch (response_frame.data[2])
-        {
-        case ENGINE_SPEED_PID: // Engine RPM
-            engine_rpm_ = static_cast<double>(((response_frame.data[3] * 256.0) + response_frame.data[4]) / 4.0);
-            std::cout << "Engine Speed [RPM]: " << engine_rpm_ << std::endl;
-            break;
+    case THROTTLE_PEDAL_POSITION_PID: // Throttle Position
+        throttle_position_ = static_cast<double>(response_frame.data[3] * 100.0 / 255.0);
+        std::cout << "Throttle Position [%]: " << throttle_position_ << std::endl;
+        break;
 
-        case VEHICLE_SPEED_PID: // Longitudinal Speed
-            longitudinal_speed_ = static_cast<double>(response_frame.data[3]);
-            is_new_data_ = true;
-            std::cout << "Vehicle Speed [km/h]: " << longitudinal_speed_ << std::endl;
-            break;
-
-        case THROTTLE_PEDAL_POSITION_PID: // Throttle Position
-            throttle_position_ = static_cast<double>(response_frame.data[3] * 100.0 / 255.0);
-            std::cout << "Throttle Position [%]: " << throttle_position_ << std::endl;
-            break;
-
-        default:
-            break;
-        }
+    default:
+        break;
     }
 
     return 1;
@@ -185,9 +181,9 @@ bool Obd2CanDriver::send_data_to_can_out()
 
         memset(send_frame.data, 0, sizeof(send_frame.data)); // Setting frame data to 0
 
-        u_int16_t vehicle_speed_cm_per_s = static_cast<u_int16_t>(engine_rpm_/10.0 / 3.6 * 100.0);
+        u_int16_t vehicle_speed_cm_per_s = static_cast<u_int16_t>(longitudinal_speed_ / 3.6 * 100.0); // longitudinal_speed_ in km/h to cm/s
 
-        u_int16_t longitudinal_acceleration_mm_per_s2 = 0;
+        u_int16_t longitudinal_acceleration_mm_per_s2 = 0; // longitudinal_acceleration_ in m/s^2 to mm/s^2
 
         /// Assembling CANVSTATE_CANID packet
         send_frame.data[0] = vehicle_speed_cm_per_s >> 8;                // Vehicle Speed MSB

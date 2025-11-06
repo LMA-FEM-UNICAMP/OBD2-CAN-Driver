@@ -34,7 +34,9 @@ public:
     bool send_data_to_can_out();
     bool send_data_to_can_out(can_frame_t);
 
-    can_frame_t obd2_request(uint8_t);
+    can_frame_t obd2_response();
+    bool obd2_request(uint8_t);
+    void obd2_requester();
 
 private:
     std::string can_in_;
@@ -51,6 +53,7 @@ private:
     std::vector<uint8_t> pids_;
 
     bool is_new_data_;
+    bool requesting_;
 
     double longitudinal_speed_;
     double engine_rpm_;

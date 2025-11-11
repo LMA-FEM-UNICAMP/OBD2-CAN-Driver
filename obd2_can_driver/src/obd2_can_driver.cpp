@@ -81,6 +81,7 @@ bool Obd2CanDriver::obd2_request(uint8_t pid)
 
 void Obd2CanDriver::obd2_requester()
 {
+    
     while (requesting_.load())
     {
         for (uint8_t pid : pids_)

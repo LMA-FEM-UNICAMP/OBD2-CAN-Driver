@@ -13,33 +13,10 @@
 
 int main(int argc, char *argv[])
 {
-    /* Deamon */
-    pid_t pid, sid;
     char string_buf[128];
-
-    // Fork off the parent process
-    pid = fork();
-    if (pid < 0)
-        exit(EXIT_FAILURE);
-    if (pid > 0)
-        exit(EXIT_SUCCESS); // Parent exits
-
-    // Create a new session
-    sid = setsid();
-    if (sid < 0)
-        exit(EXIT_FAILURE);
-
-    // Change working directory
-    if ((chdir("/")) < 0)
-        exit(EXIT_FAILURE);
 
     // Set file permissions
     umask(0);
-
-    // Close standard file descriptors
-    close(STDIN_FILENO);
-    close(STDOUT_FILENO);
-    close(STDERR_FILENO);
 
     // Open syslog for logging
     openlog("obd2_can_deamon", LOG_PID, LOG_DAEMON);
@@ -63,9 +40,6 @@ int main(int argc, char *argv[])
     Obd2CanDriver obd2_can_driver(argv[1], argv[2]);
 
     std::thread obd2_requester_trd(&Obd2CanDriver::obd2_requester, &obd2_can_driver);
-
-    snprintf(string_buf, sizeof(string_buf), "obd2_requester_trd started...");
-    syslog(LOG_INFO, string_buf);
 
     while (1)
     {

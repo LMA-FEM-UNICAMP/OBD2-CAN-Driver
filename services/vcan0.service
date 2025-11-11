@@ -1,0 +1,14 @@
+# In the file /etc/systemd/system/vcan0.service
+[Unit]
+Description=Virtual CAN interface vcan0
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/sbin/ip link add dev vcan0 type vcan
+ExecStartPost=/sbin/ip link set up vcan0
+ExecStop=/sbin/ip link delete vcan0
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

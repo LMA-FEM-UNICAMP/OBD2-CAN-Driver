@@ -7,7 +7,6 @@
 ## Clonning
 
 ```shell
-cd /opt
 git clone https://github.com/LMA-FEM-UNICAMP/OBD2-CAN-Driver.git
 ```
 
@@ -17,22 +16,27 @@ git clone https://github.com/LMA-FEM-UNICAMP/OBD2-CAN-Driver.git
 cd obd2_can_driver
 cmake .
 make
+make install
 ```
 
 ## Running (for testing)
 
 ```shell
-sudo ./obd2_can_driver_deamon &
+sudo ./obd2_can_driver_exe can_in vcan_out
 ```
 
-Checking:
+Checking daemon:
+
+```shell
+sudo ./obd2_can_driver_daemon can_in vcan_out
+```
 
 ```shell
 # Process
-ps aux | grep obd2_can_driver_deamon
+ps aux | grep obd2_can_driver_daemon
 
 # Log
-sudo journalctl -xe | grep obd2_can_driver_deamon
+sudo journalctl -xe | grep obd2_can_driver_daemon
 
 # Output
 nc -U /tmp/obd2_can_logging.sock
@@ -41,13 +45,13 @@ nc -U /tmp/obd2_can_logging.sock
 ## Installing the Deamon
 
 ```ini
-# In the file /etc/systemd/system/obd2_can_driver_deamon.service
+# In the file /etc/systemd/system/obd2_can_driver_daemon.service
 [Unit]
 Description=OBD2 CAN Driver Deamon
 After=network.target
 
 [Service]
-ExecStart=/opt/OBD2-CAN-Driver/obd2_can_driver/obd2_can_driver_deamon
+ExecStart=/opt/obd2_can_driver/bin/obd2_can_driver_daemon
 Restart=always
 
 [Install]
@@ -57,13 +61,46 @@ WantedBy=multi-user.target
 Or
 
 ```shell
-# From OBD2-CAN-Driver/
-cp obd2_can_driver_deamon.service /etc/systemd/system
+# From OBD2-CAN-Driver/services/
+cp obd2_can_driver_daemon.service /etc/systemd/system
 ```
 
 Then to activate the deamon:
 
 ```shell
-sudo systemctl enable obd2_can_driver_deamon
-sudo systemctl start obd2_can_driver_deamon
+sudo systemctl enable obd2_can_driver_daemon
+sudo systemctl start obd2_can_driver_daemon
+```
+
+## Configuring virtual CAN interface
+
+```ini
+# In the file /etc/systemd/system/vcan0.service
+[Unit]
+Description=Virtual CAN interface vcan0
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/sbin/ip link add dev vcan0 type vcan
+ExecStartPost=/sbin/ip link set up vcan0
+ExecStop=/sbin/ip link delete vcan0
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Or
+
+```shell
+# From OBD2-CAN-Driver/services/
+cp vcan0.service /etc/systemd/system
+```
+
+Then to configure the `vcan0` on startup:
+
+```shell
+sudo systemctl enable vcan0.service
+sudo systemctl start vcan0.service
 ```

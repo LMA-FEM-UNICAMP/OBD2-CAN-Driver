@@ -12,6 +12,16 @@ git clone https://github.com/LMA-FEM-UNICAMP/OBD2-CAN-Driver.git
 
 ## Compiling
 
+Install CMake and Make:
+
+```shell
+sudo apt update
+sudo apt install build-essential
+sudo apt install cmake
+```
+
+Compile:
+
 ```shell
 cd obd2_can_driver
 cmake .

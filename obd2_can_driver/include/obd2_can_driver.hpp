@@ -46,7 +46,7 @@ public:
     void obd2_requester();
     void configure_requester(bool);
 
-    void obd2_logging(char *);
+    void obd2_logging(const char*);
 
     void add_pid(uint8_t);
 

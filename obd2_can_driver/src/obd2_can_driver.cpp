@@ -54,7 +54,7 @@ void Obd2CanDriver::add_pid(uint8_t pid)
     pids_.push_back(pid);
 }
 
-void Obd2CanDriver::obd2_logging(char *msg)
+void Obd2CanDriver::obd2_logging(const char*msg)
 {
     sendto(sockfd_log_, msg, strlen(msg), 0, (struct sockaddr *)&addr_log_, sizeof(addr_log_));
 }

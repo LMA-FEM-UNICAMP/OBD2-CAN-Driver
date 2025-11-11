@@ -4,8 +4,11 @@ Description=OBD2 CAN Driver Deamon
 After=network.target
 
 [Service]
-ExecStart=/opt/obd2_can_driver/bin/obd2_can_driver_daemon
+Type=simple
+ExecStart=/opt/obd2_can_driver/bin/obd2_can_driver_daemon can0 vcan0
 Restart=always
+RestartSec=3
+User=root
 
 [Install]
 WantedBy=multi-user.target

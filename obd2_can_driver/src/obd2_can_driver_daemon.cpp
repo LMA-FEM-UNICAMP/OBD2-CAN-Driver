@@ -32,10 +32,10 @@ int main(int argc, char *argv[])
     syslog(LOG_INFO, "Starting obd2_can_driver...");
 
     snprintf(string_buf, sizeof(string_buf), "Using %s as OBD2 CAN interface", argv[1]);
-    syslog(LOG_INFO, string_buf);
+    syslog(LOG_INFO, "%s", string_buf);
 
     snprintf(string_buf, sizeof(string_buf), "Using %s as OBU CAN interface", argv[2]);
-    syslog(LOG_INFO, string_buf);
+    syslog(LOG_INFO, "%s", string_buf);
 
     Obd2CanDriver obd2_can_driver(argv[1], argv[2]);
 
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
         }
     
         snprintf(string_buf, sizeof(string_buf), "Reading CAN bus...");
-        syslog(LOG_INFO, string_buf);
+        syslog(LOG_INFO, "%s", string_buf);
     }
 
     obd2_requester_trd.join();

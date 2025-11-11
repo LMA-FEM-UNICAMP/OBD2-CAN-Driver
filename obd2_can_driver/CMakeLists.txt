@@ -11,7 +11,7 @@ add_executable(
     src/obd2_can_driver.cpp
     src/obd2_can_driver_daemon.cpp
     )
-target_link_libraries(obd2_can_driver_exe PRIVATE Threads::Threads)
+target_link_libraries(obd2_can_driver_daemon PRIVATE Threads::Threads)
 
 add_executable(
     obd2_can_driver_exe 

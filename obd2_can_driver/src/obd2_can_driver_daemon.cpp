@@ -64,6 +64,9 @@ int main(int argc, char *argv[])
 
     std::thread obd2_requester_trd(&Obd2CanDriver::obd2_requester, &obd2_can_driver);
 
+    snprintf(string_buf, sizeof(string_buf), "obd2_requester_trd started...");
+    syslog(LOG_INFO, string_buf);
+
     while (1)
     {
         bool success = obd2_can_driver.read_obd2();
@@ -71,6 +74,9 @@ int main(int argc, char *argv[])
         {
             obd2_can_driver.send_data_to_can_out();
         }
+    
+        snprintf(string_buf, sizeof(string_buf), "Reading CAN bus...");
+        syslog(LOG_INFO, string_buf);
     }
 
     obd2_requester_trd.join();

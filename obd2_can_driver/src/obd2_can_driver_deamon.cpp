@@ -52,16 +52,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    std::cout << "Starting obd2_can_driver" << std::endl;
-
     syslog(LOG_INFO, "Starting obd2_can_driver...");
-
-    std::cout << "Using " << argv[1] << " as OBD2 CAN interface" << std::endl;
 
     snprintf(string_buf, sizeof(string_buf), "Using %s as OBD2 CAN interface", argv[1]);
     syslog(LOG_INFO, string_buf);
-
-    std::cout << "Using " << argv[2] << " as OBU CAN interface" << std::endl;
 
     snprintf(string_buf, sizeof(string_buf), "Using %s as OBU CAN interface", argv[2]);
     syslog(LOG_INFO, string_buf);

@@ -42,7 +42,7 @@ Obd2CanDriver::Obd2CanDriver(std::string can_in, std::string can_out)
 
 Obd2CanDriver::~Obd2CanDriver()
 {
-    std::cout << "Closing obd2_can_driver" << std::endl;
+    obd2_logging("Closing obd2_can_driver");
 
     close(socket_in_);
     close(socket_out_);

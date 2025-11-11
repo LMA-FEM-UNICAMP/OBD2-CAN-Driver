@@ -5,7 +5,7 @@
 #include <cstring>
 #include <iostream>
 
-static const char *LOG_SOCK_PATH = "/tmp/obd2_can_logging.sock";
+#include "obd2_can_driver.hpp"
 
 int main() {
     

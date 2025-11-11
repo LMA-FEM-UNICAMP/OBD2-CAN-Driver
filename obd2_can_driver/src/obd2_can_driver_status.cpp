@@ -5,7 +5,7 @@
 #include <cstring>
 #include <iostream>
 
-static const char *LOG_SOCK_PATH = "/tmp/obd2_can_logging.log_sock";
+static const char *LOG_SOCK_PATH = "/tmp/obd2_can_logging.sock";
 
 int main() {
     

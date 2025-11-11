@@ -24,36 +24,8 @@ Obd2CanDriver::Obd2CanDriver(std::string can_in, std::string can_out)
     addr_out_.can_ifindex = ifr_out_.ifr_ifindex;
     bind(socket_out_, (struct sockaddr *)&addr_out_, sizeof(addr_out_));
 
-    // /// Checking and setting the available PIDs
-
-    // can_frame_t response_frame;
-
-    // response_frame = obd2_request(GET_AVAILABLE_PIDS_PID);
-
-    // u_int32_t available_pids = response_frame.data[6] << 24 + response_frame.data[5] << 16 + response_frame.data[4] << 8 + response_frame.data[3];
-
-    // if (available_pids >> (32 + 1 - ENGINE_SPEED_PID) & 0b1)
-    // {
-    //     pids_.push_back(ENGINE_SPEED_PID);
-    //     std::cout << "ENGINE_SPEED_PID available" << std::endl;
-    // }
-
-    // if (available_pids >> (32 + 1 - VEHICLE_SPEED_PID))
-    // {
-    //     pids_.push_back(VEHICLE_SPEED_PID);
-    //     std::cout << "VEHICLE_SPEED_PID available" << std::endl;
-    // }
-
-    // if (available_pids >> (32 + 1 - THROTTLE_PEDAL_POSITION_PID))
-    // {
-    //     pids_.push_back(THROTTLE_PEDAL_POSITION_PID);
-    //     std::cout << "THROTTLE_PEDAL_POSITION_PID available" << std::endl;
-    // }
-
-    //* Adding some PIDs for testing
-    pids_.push_back(ENGINE_SPEED_PID);
-    pids_.push_back(VEHICLE_SPEED_PID);
-    pids_.push_back(THROTTLE_PEDAL_POSITION_PID);
+    //* Adding vehicle speed PID as default
+    add_pid(VEHICLE_SPEED_PID);
 
     is_new_data_ = false;
     requesting_.store(true);
@@ -61,9 +33,9 @@ Obd2CanDriver::Obd2CanDriver(std::string can_in, std::string can_out)
     /* Logging */
     // TODO is not working
     sockfd_log_ = socket(AF_UNIX, SOCK_DGRAM, 0);
-    addr_log_ = {0};
+    memset(&addr_log_, 0, sizeof(addr_log_));
     addr_log_.sun_family = AF_UNIX;
-    strcpy(addr_log_.sun_path, "/tmp/obd2_can_logging.sock");
+    strcpy(addr_log_.sun_path, LOG_SOCK_PATH);
 
     obd2_logging("Starting obd2_can_driver...\n\n");
 }
@@ -75,6 +47,11 @@ Obd2CanDriver::~Obd2CanDriver()
     close(socket_in_);
     close(socket_out_);
     close(client_log_);
+}
+
+void Obd2CanDriver::add_pid(uint8_t pid)
+{
+    pids_.push_back(pid);
 }
 
 void Obd2CanDriver::obd2_logging(char *msg)

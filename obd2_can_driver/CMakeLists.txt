@@ -17,3 +17,8 @@ add_executable(
     src/obd2_can_driver.cpp
     src/obd2_can_driver_exe.cpp
     )
+
+add_executable(
+    obd2_can_driver_status 
+    src/obd2_can_driver_status.cpp
+    )

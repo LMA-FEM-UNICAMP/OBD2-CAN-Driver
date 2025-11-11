@@ -26,6 +26,8 @@
 #define CANVSTATE_CANID 0x123
 #define REQUEST_DELAY 20
 
+static const char *LOG_SOCK_PATH = "/tmp/obd2_can_logging.sock";
+
 typedef struct can_frame can_frame_t;
 
 class Obd2CanDriver
@@ -45,6 +47,8 @@ public:
     void configure_requester(bool);
 
     void obd2_logging(char *);
+
+    void add_pid(uint8_t);
 
 private:
     std::string can_in_;

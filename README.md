@@ -42,12 +42,12 @@ sudo journalctl -xe | grep obd2_can_driver_daemon
 nc -U /tmp/obd2_can_logging.sock
 ```
 
-## Installing the Deamon
+## Installing the Daemon
 
 ```ini
 # In the file /etc/systemd/system/obd2_can_driver_daemon.service
 [Unit]
-Description=OBD2 CAN Driver Deamon
+Description=OBD2 CAN Driver Daemon
 After=network.target
 
 [Service]
@@ -65,7 +65,7 @@ Or
 cp obd2_can_driver_daemon.service /etc/systemd/system
 ```
 
-Then to activate the deamon:
+Then to activate the daemon:
 
 ```shell
 sudo systemctl enable obd2_can_driver_daemon

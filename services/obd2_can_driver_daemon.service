@@ -1,6 +1,6 @@
 # In the file /etc/systemd/system/obd2_can_driver_daemon.service
 [Unit]
-Description=OBD2 CAN Driver Deamon
+Description=OBD2 CAN Driver Daemon
 After=network.target
 
 [Service]

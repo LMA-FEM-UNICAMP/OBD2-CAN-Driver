@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
     umask(0);
 
     // Open syslog for logging
-    openlog("obd2_can_deamon", LOG_PID, LOG_DAEMON);
+    openlog("obd2_can_daemon", LOG_PID, LOG_DAEMON);
 
     /* Program */
 

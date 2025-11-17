@@ -198,13 +198,13 @@ bool Obd2CanDriver::send_data_to_can_out()
         u_int16_t longitudinal_acceleration_mm_per_s2 = 0; // longitudinal_acceleration_ in m/s^2 to mm/s^2
 
         /// Assembling CANVSTATE_CANID packet
-        send_frame.data[0] = (vehicle_speed_cm_per_s >> 8) & 0xFF;       // Vehicle Speed MSB
-        send_frame.data[1] = vehicle_speed_cm_per_s & 0xFF;              // Vehicle Speed LSB
-        send_frame.data[2] = 0x00;                                       // ? Vehicle Speed Confidence
-        send_frame.data[3] = 0x00;                                       // ? Detected Lane Position
-        send_frame.data[5] = longitudinal_acceleration_mm_per_s2 >> 8;   // ? Longitudinal Acceleration MSB
-        send_frame.data[6] = longitudinal_acceleration_mm_per_s2 & 0xFF; // ? Longitudinal Acceleration LSB
-        send_frame.data[7] = 0x00;                                       // ? Longitudinal Acceleration confidence
+        send_frame.data[0] = (vehicle_speed_cm_per_s >> 8) & 0xFF;              // Vehicle Speed MSB
+        send_frame.data[1] = vehicle_speed_cm_per_s & 0xFF;                     // Vehicle Speed LSB
+        send_frame.data[2] = 0x00;                                              // ? Vehicle Speed Confidence
+        send_frame.data[3] = 0x00;                                              // ? Detected Lane Position
+        send_frame.data[5] = (longitudinal_acceleration_mm_per_s2 >> 8) & 0xFF; // ? Longitudinal Acceleration MSB
+        send_frame.data[6] = longitudinal_acceleration_mm_per_s2 & 0xFF;        // ? Longitudinal Acceleration LSB
+        send_frame.data[7] = 0x00;                                              // ? Longitudinal Acceleration confidence
 
         int sendbytes = write(socket_out_, &send_frame, sizeof(can_frame_t));
 

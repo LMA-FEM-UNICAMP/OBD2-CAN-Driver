@@ -54,7 +54,7 @@ void Obd2CanDriver::add_pid(uint8_t pid)
     pids_.push_back(pid);
 }
 
-void Obd2CanDriver::obd2_logging(const char*msg)
+void Obd2CanDriver::obd2_logging(const char *msg)
 {
     sendto(sockfd_log_, msg, strlen(msg), 0, (struct sockaddr *)&addr_log_, sizeof(addr_log_));
 }
@@ -81,7 +81,7 @@ bool Obd2CanDriver::obd2_request(uint8_t pid)
 
 void Obd2CanDriver::obd2_requester()
 {
-    
+
     while (requesting_.load())
     {
         for (uint8_t pid : pids_)
@@ -198,7 +198,7 @@ bool Obd2CanDriver::send_data_to_can_out()
         u_int16_t longitudinal_acceleration_mm_per_s2 = 0; // longitudinal_acceleration_ in m/s^2 to mm/s^2
 
         /// Assembling CANVSTATE_CANID packet
-        send_frame.data[0] = vehicle_speed_cm_per_s >> 8;                // Vehicle Speed MSB
+        send_frame.data[0] = (vehicle_speed_cm_per_s >> 8) & 0xFF;       // Vehicle Speed MSB
         send_frame.data[1] = vehicle_speed_cm_per_s & 0xFF;              // Vehicle Speed LSB
         send_frame.data[2] = 0x00;                                       // ? Vehicle Speed Confidence
         send_frame.data[3] = 0x00;                                       // ? Detected Lane Position

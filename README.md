@@ -86,6 +86,14 @@ sudo systemctl enable obd2_can_driver_daemon
 sudo systemctl start obd2_can_driver_daemon
 ```
 
+## Reading daemon status
+
+Run `obd2_can_driver_status` command to echo the output from the daemon:
+
+```shell
+obd2_can_driver_status
+```
+
 ## Configuring virtual CAN interface for Input/Output buses
 
 ```ini

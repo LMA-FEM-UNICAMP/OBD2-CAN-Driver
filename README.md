@@ -1,7 +1,7 @@
 # OBD2 CAN Driver for Cohda MK6 OBU
 
 <p align="center">
-  <img width="60%" height="80%" src="docs/CAN_OBD2-diagram.png">
+  <img width="80%" height="100%" src="docs/CAN_OBD2-diagram.png">
 </p>
 
 <p align="center">

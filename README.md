@@ -86,7 +86,7 @@ sudo systemctl enable obd2_can_driver_daemon
 sudo systemctl start obd2_can_driver_daemon
 ```
 
-## Configuring virtual CAN interface
+## Configuring virtual CAN interface for Input/Output buses
 
 ```ini
 # In the file /etc/systemd/system/vcan0.service

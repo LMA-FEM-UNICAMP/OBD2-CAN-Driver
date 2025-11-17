@@ -5,7 +5,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/opt/obd2_can_driver/bin/obd2_can_driver_daemon can0 vcan0
+ExecStart=/opt/obd2_can_driver/bin/obd2_can_driver_daemon can0 can0
 Restart=always
 RestartSec=3
 User=root

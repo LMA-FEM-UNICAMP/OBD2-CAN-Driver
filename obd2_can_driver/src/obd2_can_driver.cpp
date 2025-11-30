@@ -25,13 +25,12 @@ Obd2CanDriver::Obd2CanDriver(std::string can_in, std::string can_out)
     bind(socket_out_, (struct sockaddr *)&addr_out_, sizeof(addr_out_));
 
     //* Adding vehicle speed PID as default
-    add_pid(VEHICLE_SPEED_PID);
+    // add_pid(VEHICLE_SPEED_PID);
 
     is_new_data_ = false;
     requesting_.store(true);
 
     /* Logging */
-    // TODO is not working
     sockfd_log_ = socket(AF_UNIX, SOCK_DGRAM, 0);
     memset(&addr_log_, 0, sizeof(addr_log_));
     addr_log_.sun_family = AF_UNIX;
@@ -79,16 +78,34 @@ bool Obd2CanDriver::obd2_request(uint8_t pid)
     return (sendbytes > 0) ? 1 : 0;
 }
 
+bool Obd2CanDriver::obd2_request_j1939()
+{
+    can_frame_t request_frame;
+
+    /// Sending OBD2 request for the desired PID
+
+    request_frame.can_id = 0x18EAFF00 | CAN_EFF_FLAG; // Broadcast ID
+    request_frame.can_dlc = 3;         // Frame data size
+
+    memset(request_frame.data, 0, sizeof(request_frame.data)); // Setting frame data to 0
+
+    request_frame.data[0] = 0xF1; // Number of bytes
+    request_frame.data[1] = 0xFE; // Service 01 (Show current data)
+    request_frame.data[2] = 0x00; // PID
+
+    int sendbytes = write(socket_in_, &request_frame, sizeof(can_frame_t));
+
+    return (sendbytes > 0) ? 1 : 0;
+}
+
 void Obd2CanDriver::obd2_requester()
 {
 
     while (requesting_.load())
     {
-        for (uint8_t pid : pids_)
-        {
-            bool request_success = obd2_request(pid);
-            std::this_thread::sleep_for(std::chrono::milliseconds(REQUEST_DELAY));
-        }
+
+        // bool request_success = obd2_request_j1939();
+        std::this_thread::sleep_for(std::chrono::milliseconds(REQUEST_DELAY));
     }
 }
 
@@ -118,6 +135,35 @@ can_frame_t Obd2CanDriver::obd2_response()
 
         return response_frame;
     }
+}
+
+can_frame_t Obd2CanDriver::obd2_response_j1939()
+{
+    can_frame_t response_frame;
+
+    /// Reading OBD2 response
+
+    int nbytes = read(socket_in_, &response_frame, sizeof(can_frame_t));
+
+
+
+    // std::cout << "CAN ID: " << (response_frame.can_id & CAN_EFF_MASK) << std::endl;
+
+    response_frame.can_id = response_frame.can_id & CAN_EFF_MASK;    
+
+    /// Checking if the response was successful, the ID is valid and the PID is right
+    if (nbytes > 0) // && response_frame.data[2] == pid)
+    {
+        return response_frame;
+    }
+
+    /// If some is wrong, skip this request and return a invalid message
+    // else
+    // {
+    //     response_frame.can_id = 0x00;
+
+    //     return response_frame;
+    // }
 }
 
 bool Obd2CanDriver::read_obd2()
@@ -171,6 +217,30 @@ bool Obd2CanDriver::read_obd2()
     return 1;
 }
 
+bool Obd2CanDriver::read_obd2_j1939()
+{
+
+    char logging_buffer[128];
+
+    can_frame_t response_frame;
+
+    response_frame = obd2_response_j1939();
+
+    if (response_frame.can_id == 0x18FEF100)
+    {
+        longitudinal_speed_ = static_cast<double>(((response_frame.data[1])));
+        is_new_data_ = true;
+
+        std::cout << "Vehicle Speed [km/h]: " << longitudinal_speed_ << std::endl;
+
+        snprintf(logging_buffer, sizeof(logging_buffer), "Vehicle Speed [km/h]: %d\n", longitudinal_speed_);
+        obd2_logging(logging_buffer);
+        return 1;
+    }
+
+    return 0;
+}
+
 bool Obd2CanDriver::send_data_to_can_out()
 {
     //* From SDK exampleETSI can-vstate.c:
@@ -204,7 +274,7 @@ bool Obd2CanDriver::send_data_to_can_out()
         send_frame.data[3] = 0x00;                                              // ? Detected Lane Position
         send_frame.data[5] = (longitudinal_acceleration_mm_per_s2 >> 8) & 0xFF; // ? Longitudinal Acceleration MSB
         send_frame.data[6] = longitudinal_acceleration_mm_per_s2 & 0xFF;        // ? Longitudinal Acceleration LSB
-        send_frame.data[7] = 102;                                              // ? Longitudinal Acceleration confidence (102 - unavailable)
+        send_frame.data[7] = 102;                                               // ? Longitudinal Acceleration confidence (102 - unavailable)
 
         int sendbytes = write(socket_out_, &send_frame, sizeof(can_frame_t));
 

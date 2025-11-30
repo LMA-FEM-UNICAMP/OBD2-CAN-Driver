@@ -37,12 +37,15 @@ public:
     ~Obd2CanDriver();
 
     bool read_obd2();
+    bool read_obd2_j1939();
 
     bool send_data_to_can_out();
     bool send_data_to_can_out(can_frame_t);
 
     can_frame_t obd2_response();
+    can_frame_t obd2_response_j1939();
     bool obd2_request(uint8_t);
+    bool obd2_request_j1939();
     void obd2_requester();
     void configure_requester(bool);
 
@@ -67,7 +70,7 @@ private:
     bool is_new_data_;
     std::atomic<bool> requesting_;
 
-    int longitudinal_speed_;
+    double longitudinal_speed_;
     double engine_rpm_;
     double throttle_position_;
 

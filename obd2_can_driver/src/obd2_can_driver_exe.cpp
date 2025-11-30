@@ -27,14 +27,14 @@ int main(int argc, char *argv[])
 
     Obd2CanDriver obd2_can_driver(argv[1], argv[2]);
 
-    obd2_can_driver.add_pid(THROTTLE_PEDAL_POSITION_PID);
-    obd2_can_driver.add_pid(ENGINE_SPEED_PID);
+    // obd2_can_driver.add_pid(THROTTLE_PEDAL_POSITION_PID);
+    // obd2_can_driver.add_pid(ENGINE_SPEED_PID);
 
     std::thread obd2_requester_trd(&Obd2CanDriver::obd2_requester, &obd2_can_driver);
 
     while (1)
     {
-        bool success = obd2_can_driver.read_obd2();
+        bool success = obd2_can_driver.read_obd2_j1939();
         if (success)
         {
             obd2_can_driver.send_data_to_can_out();

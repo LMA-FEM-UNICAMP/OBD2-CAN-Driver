@@ -65,7 +65,7 @@ bool Obd2CanDriver::obd2_request(uint8_t pid)
 
     /// Sending OBD2 request for the desired PID
 
-    request_frame.can_id = 0x7DF; // Broadcast ID
+    request_frame.can_id = 0x18DB33F1 | CAN_EFF_FLAG; // Broadcast ID
     request_frame.can_dlc = 8;    // Frame data size
 
     memset(request_frame.data, 0, sizeof(request_frame.data)); // Setting frame data to 0
@@ -106,7 +106,7 @@ can_frame_t Obd2CanDriver::obd2_response()
     int nbytes = read(socket_in_, &response_frame, sizeof(can_frame_t));
 
     /// Checking if the response was successful, the ID is valid and the PID is right
-    if (nbytes > 0 && (response_frame.can_id & 0xFF0) == 0x7E0) // && response_frame.data[2] == pid)
+    if (nbytes > 0) // && response_frame.data[2] == pid)
     {
         return response_frame;
     }

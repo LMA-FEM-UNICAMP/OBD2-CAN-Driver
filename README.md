@@ -36,13 +36,13 @@ make install
 ## Running (for testing)
 
 ```shell
-sudo ./obd2_can_driver_exe can_in vcan_out
+sudo ./obd2_can_driver_exe can_in can_out
 ```
 
 Checking daemon:
 
 ```shell
-sudo ./obd2_can_driver_daemon can_in vcan_out
+sudo ./obd2_can_driver_daemon can_in can_out
 ```
 
 ```shell
@@ -92,37 +92,4 @@ Run `obd2_can_driver_status` command to echo the output from the daemon:
 
 ```shell
 obd2_can_driver_status
-```
-
-## Configuring virtual CAN interface for Input/Output buses
-
-```ini
-# In the file /etc/systemd/system/vcan0.service
-[Unit]
-Description=Virtual CAN interface vcan0
-After=network.target
-
-[Service]
-Type=oneshot
-ExecStart=/sbin/ip link add dev vcan0 type vcan
-ExecStartPost=/sbin/ip link set up vcan0
-ExecStop=/sbin/ip link delete vcan0
-RemainAfterExit=yes
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Or
-
-```shell
-# From OBD2-CAN-Driver/services/
-cp vcan0.service /etc/systemd/system
-```
-
-Then to configure the `vcan0` on startup:
-
-```shell
-sudo systemctl enable vcan0.service
-sudo systemctl start vcan0.service
 ```

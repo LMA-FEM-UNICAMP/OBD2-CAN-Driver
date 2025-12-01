@@ -24,7 +24,11 @@
 #define THROTTLE_PEDAL_POSITION_PID 0x11
 
 #define CANVSTATE_CANID 0x123
-#define REQUEST_DELAY 20
+#define REQUEST_DELAY 100
+
+#define IS_EXTENDED_CAN 0
+#define IS_STANDARD_CAN 1
+#define CAN_TYPE_UNKOWN 2
 
 static const char *LOG_SOCK_PATH = "/tmp/obd2_can_logging.sock";
 
@@ -66,6 +70,7 @@ private:
 
     bool is_new_data_;
     std::atomic<bool> requesting_;
+    std::atomic<uint8_t> can_type_;
 
     int longitudinal_speed_;
     double engine_rpm_;
